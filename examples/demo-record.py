@@ -75,6 +75,24 @@ with Hdf5_Dataset(output_file) as hf:
             ir_img = cv2.resize(ir_img, (ir_img.shape[1]//2,ir_img.shape[0]//2))
             bg_img = cv2.resize(color_img, (color_img.shape[1]//2,color_img.shape[0]//2))
             depth_img = cv2.resize(depth_img, (depth_img.shape[1]//2,depth_img.shape[0]//2))
+            rect_size = 10
+            
+            small_rect = depth_img[
+                depth_img.shape[1]//2-rect_size:depth_img.shape[1]//2+rect_size,
+                depth_img.shape[0]//2-rect_size:depth_img.shape[0]//2+rect_size,:]
+            print(f"rect - min depth: {small_rect.min()} max depth {small_rect.max()}")
+            depth_img[ # Left
+                depth_img.shape[1]//2-rect_size:depth_img.shape[1]//2+rect_size,
+                depth_img.shape[0]//2-rect_size:depth_img.shape[0]//2-(rect_size-1),:] = 0
+            depth_img[ # Right
+                depth_img.shape[1]//2-rect_size:depth_img.shape[1]//2+rect_size,
+                depth_img.shape[0]//2+(rect_size-1):depth_img.shape[0]//2+rect_size,:] = 0
+            depth_img[ # Top
+                depth_img.shape[1]//2-rect_size:depth_img.shape[1]//2-(rect_size-1),
+                depth_img.shape[0]//2-rect_size:depth_img.shape[0]//2+rect_size,:] = 0
+            depth_img[ # Bottom
+                depth_img.shape[1]//2+(rect_size-1):depth_img.shape[1]//2+rect_size,
+                depth_img.shape[0]//2-rect_size:depth_img.shape[0]//2+rect_size,:] = 0
 
             bg_img[:depth_img.shape[0],:depth_img.shape[1], :] = depth_img
             bg_img[-ir_img.shape[0]:,:ir_img.shape[1], :] = ir_img
