@@ -8,6 +8,8 @@ import os
 import h5py
 
 import time
+
+from libkinect2.utils import depth_map_to_image
 # frame rate (e.g., 10 frames per second)
 desired_frame_rate = 5
 frame_delay = 1.0 / desired_frame_rate
@@ -69,7 +71,7 @@ with Hdf5_Dataset(input_file, readmode=True) as hf:
     start_time = time.time()
     next_frame_time = start_time + frame_delay
     frames = zip(color_imgs, depth_maps, ir_datas)
-    bg_img, depth_img, ir_img = next(frames)
+    bg_img, depth_map, ir_img = next(frames)
     while True:
         current_time = time.time()
         if current_time >= next_frame_time:
@@ -79,6 +81,7 @@ with Hdf5_Dataset(input_file, readmode=True) as hf:
             ir_img = ir_img.astype('uint8')
             ir_img = cv2.resize(ir_img, (ir_img.shape[1]//2,ir_img.shape[0]//2))
             bg_img = cv2.resize(bg_img, (bg_img.shape[1]//2,bg_img.shape[0]//2))
+            depth_img = depth_map_to_image(depth_map)
             depth_img = cv2.resize(depth_img, (depth_img.shape[1]//2,depth_img.shape[0]//2))
 
             bg_img[:depth_img.shape[0],:depth_img.shape[1], :] = depth_img

@@ -68,7 +68,7 @@ with Hdf5_Dataset(output_file) as hf:
 
             # If it's the first frame, create the HDF5 file and dataset
             hf.append_sample("rgb", bg_img.astype('uint8'))
-            hf.append_sample("depth", depth_img.astype('uint8'))
+            hf.append_sample("depth", depth_map.astype('uint8'))
             hf.append_sample("ir", ir_img.astype('uint8'))
 
             # Resizing to present in screen
