@@ -2,6 +2,7 @@
 Demonstrating basic usage of Kinect2 cameras.
 """
 
+from libkinect2.utils import draw_skeleton, depth_map_to_image, ir_to_image
 import numpy as np
 import cv2
 import os
@@ -61,7 +62,8 @@ class Hdf5_Dataset():
     def __exit__(self, exception_type, exception_value, exception_traceback):
         self.hf_handler.close()
 
-input_file = "E:\\frames.h5"
+input_file = r"C:\Users\Artur Oliveira\projetosdev\LibKinect2\frames.h5"
+
 
 with Hdf5_Dataset(input_file, readmode=True) as hf:
     color_imgs = hf.get_frames("rgb")
@@ -77,6 +79,7 @@ with Hdf5_Dataset(input_file, readmode=True) as hf:
         if current_time >= next_frame_time:
             # Resizing to present in screen
             bg_img = bg_img.astype('uint8')
+            depth_img = depth_map_to_image(depth_map)
             depth_img = depth_img.astype('uint8')
             ir_img = ir_img.astype('uint8')
             ir_img = cv2.resize(ir_img, (ir_img.shape[1]//2,ir_img.shape[0]//2))
@@ -91,7 +94,7 @@ with Hdf5_Dataset(input_file, readmode=True) as hf:
             cv2.imshow('sensors', bg_img)
             next_frame_time += frame_delay
             frame_index += 1
-            bg_img, depth_img, ir_img = next(frames)
+            bg_img, depth_map, ir_img = next(frames)
 
 
         key = cv2.waitKey(1) & 0xFF

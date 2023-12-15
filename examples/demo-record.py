@@ -54,7 +54,7 @@ class Hdf5_Dataset():
         self.hf_handler.close()
 
         
-output_file = "E:\\frames.h5"
+output_file = "C:\\Users\\NTUG3\\Documents\\LibKinect2\\frames.h5"
 with Hdf5_Dataset(output_file) as hf:
     frame_index = 0
     start_time = time.time()
@@ -68,7 +68,7 @@ with Hdf5_Dataset(output_file) as hf:
 
             # If it's the first frame, create the HDF5 file and dataset
             hf.append_sample("rgb", bg_img.astype('uint8'))
-            hf.append_sample("depth", depth_map.astype('uint8'))
+            hf.append_sample("depth", depth_map.astype('uint16'))
             hf.append_sample("ir", ir_img.astype('uint8'))
 
             # Resizing to present in screen
