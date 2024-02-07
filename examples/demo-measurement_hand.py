@@ -8,8 +8,8 @@ import cv2
 import os
 import h5py
 
-
-farthresh = 10
+mindist = 600
+farthresh = 70
 
 # Init kinect w/all visual sensors
 kinect = Kinect2(use_sensors=['color', 'depth', 'ir', 'body'])
@@ -56,8 +56,8 @@ class Hdf5_Dataset():
 
 for _, color_img, depth_map, ir_data, bodies in kinect.iter_frames():
     bg_img = color_img
-    closest = depth_map.min()
-    print(f"Closest: {closest}")
+    closest = depth_map[depth_map > mindist].min()
+    # print(f"Closest: {closest}")
     rect_size = 10
     tp = depth_map.shape[1]//2-rect_size
     bt = depth_map.shape[1]//2+rect_size
@@ -65,10 +65,46 @@ for _, color_img, depth_map, ir_data, bodies in kinect.iter_frames():
     rt = depth_map.shape[0]//2+rect_size
     
     small_rect = depth_map[tp:bt, lf:rt]
-    depth_img = depth_map < closest+farthresh
+    depth_img = (depth_map > closest) & (depth_map < closest+farthresh)
     print(f"rect - min depth: {small_rect.min()} max depth {small_rect.max()}")
 
     depth_img = depth_img.astype('uint8')*255
+
+    contours, _ = cv2.findContours(depth_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    convex_hull_image = np.zeros_like(depth_img)
+    
+    #for contour in contours:
+    #    convex_hull = cv2.convexHull(contour)
+    #    # Draw the convex hull on the empty image
+    #    cv2.drawContours(convex_hull_image, [convex_hull], 0, 255, -1)
+    minx = convex_hull.squeeze()[:,0].min()
+    maxx = convex_hull.squeeze()[:,0].max()
+    dx = maxx-minx
+    miny = convex_hull.squeeze()[:,1].min()
+    maxy = convex_hull.squeeze()[:,1].max()
+    dy = maxy-miny
+    area = (maxx-minx)*(maxy-miny)
+    mean_dist = (depth_img>1).mean()
+
+    # Kinect gives points in mm ref: https://stackoverflow.com/a/9678900/3562468
+    print(f"dx {dx} dy {dy} area {area} mean_dist {mean_dist}")
+
+    # Known parameters
+    # REF: https://stackoverflow.com/a/45481222/3562468
+    box_cm = 35 # Referencial
+    focal_length = 365.7 # Ref: https://www.semanticscholar.org/paper/Calibration-of-Kinect-for-Xbox-One-and-Comparison-Pagliari-Pinto/6efdd37a71f4cd3a7a0c82c89eabcbb223a11ea3
+    horizontal_fov_deg = 70.6  
+    depth_map_width = 512  
+    
+    # Calculate degrees per pixel in the horizontal direction
+    degrees_per_pixel_horizontal = horizontal_fov_deg / depth_map_width
+    
+    # Calculate object width in pixels based on known width
+    px_to_cm = dx*((mean_dist/10)/focal_length) 
+    
+    print(f"The object's width in pixels is approximately {px_to_cm:.2f} pixels.")
+
+    
     ir_img = ir_to_image(ir_data)
 
     depth_img[tp:bt  , lf:lf+1] = 255 # Left

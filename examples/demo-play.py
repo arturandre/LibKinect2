@@ -62,7 +62,7 @@ class Hdf5_Dataset():
     def __exit__(self, exception_type, exception_value, exception_traceback):
         self.hf_handler.close()
 
-input_file = r"C:\Users\Artur Oliveira\projetosdev\LibKinect2\frames.h5"
+input_file = "C:\\Users\\NTUG3\\Documents\\LibKinect2\\frames.h5"
 
 
 with Hdf5_Dataset(input_file, readmode=True) as hf:
